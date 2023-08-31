@@ -1,18 +1,18 @@
 class Transaction {
     static Id = 0
-    constructor(date, amount, senderId, receiverId, typeOfTransaction, currentBalance) {
+    constructor(date, amount, accountIdOfSender, accountIdOfReceiver, typeOfTransaction, currentBalance) {
         this.transactionId = Transaction.Id++
         this.date = date
         this.amount = amount
-        this.senderId = senderId
-        this.receiverId = receiverId
+        this.accountIdOfSender = accountIdOfSender
+        this.accountIdOfReceiver = accountIdOfReceiver
         this.typeOfTransaction = typeOfTransaction
         this.currentBalance = currentBalance
 
     }
 
-    static createTransaction(date, amount, senderid, receiverid, typeoftransaction, currentbalance) {
-        return new Transaction(date, amount, senderid, receiverid, typeoftransaction, currentbalance)
+    static createTransaction(date, amount, accountIdOfSender, accountIdOfReceiver, typeoftransaction, currentbalance) {
+        return new Transaction(date, amount, accountIdOfSender, accountIdOfReceiver, typeoftransaction, currentbalance)
     }
 
 

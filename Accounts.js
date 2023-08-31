@@ -15,7 +15,7 @@ class Accounts
         return new Accounts(name, minTotalBalance)
     }
 
-    createTransaction(date, amount, senderId, receiverId, typeOfTransaction, currentBalance) {
+    createTransaction(date, amount, accountIdOfSender, accountIdOfReceiver, typeOfTransaction, currentBalance) {
         try {
             if (typeof typeOfTransaction != 'string' && typeOfTransaction != 'deposit' && typeOfTransaction != 'withdraw' && typeOfTransaction != 'transfer') {
                 throw new Error('Invalid transcation type')
@@ -23,7 +23,7 @@ class Accounts
             if (typeof currentBalance < 0) {
                 throw new Error('Insufficient Balance')
             }
-            let transaction = Transaction.createTransaction(date, amount, senderId, receiverId, typeOfTransaction, currentBalance)
+            let transaction = Transaction.createTransaction(date, amount, accountIdOfSender, accountIdOfReceiver, typeOfTransaction, currentBalance)
 
             return transaction
         } catch (error) {
@@ -47,18 +47,18 @@ class Accounts
         this.passbook.push(withdrawTransaction)
     }
     
-    send(amount, senderid, receiverid) {
+    send(amount, accountIdOfSender, accountIdOfReceiver) {
         if (this.bankBalance <= 1000) {
             throw new Error('cannot transfer because your account should have balance greater than Rs 1000')
         }
         this.bankBalance = this.bankBalance - amount
-        let transferTransaction = this.createTransaction(new Date(), amount, senderid, receiverid, 'transfer', this.bankBalance)
+        let transferTransaction = this.createTransaction(new Date(), amount, accountIdOfSender, accountIdOfReceiver, 'transfer', this.bankBalance)
         this.passbook.push(transferTransaction)
     }
 
-    receive(amount, senderid, receiverid) {
+    receive(amount, accountIdOfSender, accountIdOfReceiver) {
         this.bankBalance = this.bankBalance + amount
-        let transferTransaction = this.createTransaction(new Date(), amount, senderid, receiverid, 'transfer', this.bankBalance)
+        let transferTransaction = this.createTransaction(new Date(), amount, accountIdOfSender, accountIdOfReceiver, 'transfer', this.bankBalance)
         this.passbook.push(transferTransaction)
     }
 

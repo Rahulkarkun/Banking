@@ -323,7 +323,7 @@ class Customer
         }
     }
 
-    transferTo(amount, senderid, receiverid, custid) {
+    transferTo(amount, accountIdOfSender, accountIdOfReceiver, custid) {
         try {
             if (this.isAdmin) {
                 throw new Error('Only user can transfer money')
@@ -337,18 +337,18 @@ class Customer
                 throw new Error('Customer id not found')
             }
 
-            let [SenderAccount, indexofsender] = this.#findAccount(senderid)
+            let [SenderAccount, indexofsender] = this.#findAccount(accountIdOfSender)
             if (SenderAccount == null) {
                 throw new Error('Sender Account No not found')
             }
 
-            let [ReceiverAccount, indexofreceiver] = FoundCustomer.#findAccount(receiverid)
+            let [ReceiverAccount, indexofreceiver] = FoundCustomer.#findAccount(accountIdOfReceiver)
             if (ReceiverAccount == null) {
                 throw new Error('Receiver Account No not found')
             }
 
-            SenderAccount.send(amount, senderid, receiverid)
-            ReceiverAccount.receive(amount, senderid, receiverid)
+            SenderAccount.send(amount, accountIdOfSender, accountIdOfReceiver)
+            ReceiverAccount.receive(amount, accountIdOfSender, accountIdOfReceiver)
 
         } catch (error) {
             throw new Error(error.message)
