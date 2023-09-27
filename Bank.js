@@ -24,25 +24,9 @@ class Bank
         return newbank
     }
 
-    // createBank(fullName) {
-    //     try 
-    //     {
-    //       if (!this.isAdmin) {
-    //         throw new Error("Only admin can create a bank");
-    //     }
-    //       const newBank = new Bank(fullName);
-    //       Bank.bank.push(newBank);
-    //       return newBank;
-    //     } catch (error) {
-    //       console.log(error.message);
-    //     }
-    //   }
-
-    static getAllBanks() {
-        // if (!this.isAdmin) {
-        //     throw new Error("Not an admin")
-        // }
-        return Bank.bank
+    static getAllBanks() 
+    {
+        return this.bank
     }
 
     static #findBank(bankID) {
@@ -58,7 +42,7 @@ class Bank
     {
         if (bankID < 0 || typeof bankID != 'number') 
         {
-            throw new Error("Invalid ContactId")
+            throw new Error("Invalid BankId")
         }
         let [foundBank, indexOfFoundBank] = Bank.#findBank(bankID)
         if (foundBank == null) 
@@ -89,7 +73,7 @@ class Bank
         if (typeof bankId != 'number') {
             throw new Error('Invalid Input')
         }
-        let [bankToBeDeleted, indexOfBankToBeDeleted] = Bank.#findBank(bankId)
+        let [bankToBeDeleted, indexOfBankToBeDeleted] = this.#findBank(bankId)
         if (bankToBeDeleted == null) {
             throw new Error("User not found")
         }

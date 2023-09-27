@@ -2,21 +2,21 @@
 //user ka list global
 //create bank
 //
-const Bank = require("./Bank")
-const Accounts = require("./Accounts")
+let Bank = require("./Bank")
+let Account = require("./Account")
 class Customer
 {
     static allCustomers = []
     static customerID = 0
-    static mintotalBalance = 1000
+    static minBalance = 1000
     //isAdmin = false
     constructor(firstName,lastName,isAdmin)
     {
-        this.account = []
+        this.accounts = []
         this.customerID = Customer.customerID++
         this.firstName = firstName
         this.lastName = lastName
-        this.minTotalBalance = Customer.mintotalBalance
+        this.balance = Customer.minBalance
         this.isAdmin = isAdmin
     }
 
@@ -58,7 +58,7 @@ class Customer
                 throw new Error("Invalid number")
             }
 
-            const customer = new Customer(firstName, lastName, false)
+            let customer = new Customer(firstName, lastName, false)
             Customer.allCustomers.push(customer)
             return customer
         }
@@ -87,7 +87,7 @@ class Customer
             console.log(error.message)
         }
 
-        this.totalBalance = newValue
+        this.balance = newValue
     }
 
     #findCustomer(userId) {
@@ -171,7 +171,7 @@ class Customer
                 throw new Error("User not found")
             }
             Customer.allCustomers.splice(indexOfCustomerToBeDeleted, 1)
-            return `${userToBeDeleted.id} is Deleted successfully !!`
+            return `${customerToBeDeleted.id} is Deleted successfully !!`
         }
         catch (error) {
             console.log(error.message);
@@ -183,6 +183,7 @@ class Customer
             if (!this.isAdmin) {
                 throw new Error('You are not admin')
             }
+            
             Bank.createBank(fullname)
 
         } catch (error) {
@@ -234,9 +235,11 @@ class Customer
                 throw new Error('Only Customer can create Account')
             }
             let bankFound = Bank.createAccount(bankId)
-            let account = Accounts.createAccount(bankFound, this.minTotalBalance)
-            this.account.push(account)
-            return account
+            //console.log(bankFound)
+            let account = Account.createAccount(bankFound, Customer.minBalance)
+            //console.log(account)
+            this.accounts.push(account)
+            //return account
 
         } catch (error) {
             throw new Error(error.message)
@@ -244,133 +247,149 @@ class Customer
 
     }
 
-    getAllAccount() {
-        try {
-            if (this.isAdmin) {
-                throw new Error('Only user can view Account details')
+
+    #findAccount(accountId)
+    {
+        for (let index = 0; index <= this.accounts.length; index++) {
+            if (accountId == this.accounts[index].id) {
+                return [this.accounts[index], index]
             }
-            return this.account
+        }
+        return [null,-1]
+    }
+
+    deleteAccount(accountId)
+    {
+        if(typeof accountId != 'number')
+        {
+            throw new Error('Invalid Account Id')
+        }
+        
+        let [accountToBeDeleted,indexOfAccounttoBeDeleted]=this.#findAccount(accountId)
+        if(accountToBeDeleted == null)
+        {
+            throw new Error('Account not found')
+        }
+        this.accounts.splice(indexOfAccounttoBeDeleted,1)
+        return `${accountId} is Deleted successfully !!`
+    }
+
+    getAllAccount()
+    {
+        return this.accounts
+    }
+
+    withdraw(accountId, amount) 
+    {
+        let [account, index] = this.#findAccount(accountId);
+    
+        if (account === null) {
+            console.log(`Account with ID ${accountId} not found for customer ${this.firstName} ${this.lastName}`);
+            throw new Error('Account not found');
+        }
+    
+        let timestamp = new Date();
+        let transaction = account.withdraw(amount, -1,accountId, timestamp); 
+    
+        return transaction;
+    }
+
+    deposit(accountId, amount) {
+        let [account, index] = this.#findAccount(accountId);
+    
+        if (account === null) 
+        {
+            console.log(`Account with ID ${accountId} not found for customer ${this.firstName} ${this.lastName}`);
+            throw new Error('Account not found');
+        }
+    
+        let timestamp = new Date();
+        let transaction = account.deposit(amount, -1, accountId, timestamp); // Pass 'this' as senderAccount and null as receiverAccount
+    
+        return transaction;
+    }
+
+    intraTransfer(senderAccountId, receiverAccountId, amount) {
+        // Find the sender account
+        let [senderAccount, indexOfSender] = this.#findAccount(senderAccountId);
+
+        if (senderAccount === null) {
+            throw new Error('Sender account not found');
+        }
+
+        // Find the receiver account
+        let [receiverAccount, indexOfReceiver] = this.#findAccount(receiverAccountId);
+
+        if (receiverAccount === null) {
+            throw new Error('Receiver account not found');
+        }
+
+        // Perform the intra-account transfer by calling the Account class method
+        let timestamp = new Date();
+        let transaction = senderAccount.intraTransfer(receiverAccount, timestamp, amount);
+
+        return transaction;
+    }
+
+    
+
+    transfer(accountId, targetCustomerId, targetAccountId, amount) {
+        //let [senderCustomer, senderCustomerIndex] = this.#findCustomer(customerId);
+        let [receiverCustomer, receiverCustomerIndex] = this.#findCustomer(targetCustomerId);
+        //console.log(receiverCustomer)
+
+        if (receiverCustomer == null) {
+            throw new Error('Sender or receiver customer not found');
+        }
+
+        let [senderAccount,senderAccountIndex] = this.#findAccount(accountId);
+        let [receiverAccount,receiverAccountIndex] = receiverCustomer.#findAccount(targetAccountId);
+
+        if (senderAccount == null || receiverAccount == null) {
+            throw new Error('Sender or receiver account not found');
+        }
+
+        let transaction = senderAccount.transfer(receiverAccount,amount);
+        return transaction;
+    }
+
+    getPassBook(customerId) {
+        // Find the customer
+        let [customer, customerIndex] = this.#findCustomer(customerId);
+    
+        if (customer == null) {
+            throw new Error('Customer not found');
+        }
+    
+        let passbook = `Passbook for ${customer.firstName} ${customer.lastName}:\n`;
+    
+        // Loop through all accounts of the customer
+        for (let account of customer.accounts) {
+            passbook += `Account ID: ${account.id}\n`;
+    
+            // Get the passbook for the account by calling its getPassBook method
+            let accountPassbook = account.getPassBook();
+            passbook += accountPassbook;
+    
+            passbook += '\n';
+        }
+    
+        return passbook;
+    }
+    
+    totalBalance()
+    {
+        try {
+            let totalBalance = 0
+            
+            for (let index = 0; index < this.accounts.length; index++) {
+                totalBalance = totalBalance + this.accounts[index].balance
+                
+            }
+            return `Total Balance of Customer ${this.customerID} is: ${totalBalance}`
+
         } catch (error) {
             throw new Error(error.message)
-        }
-    }
-
-    #findAccount(accountId) {
-        for (let index = 0; index < this.account.length; index++) {
-            if (accountId == this.account[index].accountNo) {
-                return [this.account[index], index]
-            }
-        }
-        return [null, -1]
-
-    }
-
-    deleteAccount(accountId) {
-        try {
-            if (this.isAdmin) {
-                throw new Error('Only user can delete Account')
-            }
-            let [foundAccount, indexOfAccount] = this.#findAccount(accountId)
-            if (foundAccount == null) {
-                throw new Error('Account Not found')
-            }
-            this.account.splice(indexOfAccount, 1)
-
-        } catch (error) {
-            throw new Error(error.message)
-        }
-    }
-
-    deposit(accountNo, amount) {
-        try {
-            if (this.isAdmin) {
-                throw new Error('Only user can deposit money')
-            }
-            if (typeof amount != 'number') {
-                throw new Error('Amount entered should be strictly in numerics')
-            }
-
-            let [foundAccount, indexOfAccount] = this.#findAccount(accountNo)
-            if (foundAccount == null) {
-                throw new Error('Account Not found')
-            }
-
-            foundAccount.deposit(amount, accountNo)
-        } catch (error) {
-            throw new Error(error.message)
-
-        }
-    }
-
-    withdraw(accountNo, amount) {
-        try {
-            if (this.isAdmin) {
-                throw new Error('Only user can withdraw money')
-            }
-            if (typeof amount != 'number') {
-                throw new Error('Amount entered should be strictly in numerics')
-            }
-
-            let [FoundAccount, indexofAccount] = this.#findAccount(accountNo)
-            if (FoundAccount == null) {
-                throw new Error('Account No not found')
-            }
-
-            FoundAccount.withdraw(amount, accountNo)
-
-        } catch (error) {
-            throw new Error(error.message)
-        }
-    }
-
-    transferTo(amount, accountIdOfSender, accountIdOfReceiver, custid) {
-        try {
-            if (this.isAdmin) {
-                throw new Error('Only user can transfer money')
-            }
-            if (typeof amount != 'number') {
-                throw new Error('Amount entered should be strictly in numerics')
-            }
-
-            let [FoundCustomer, indexofCustomer] = this.#findCustomer(custid)
-            if (FoundCustomer == null) {
-                throw new Error('Customer id not found')
-            }
-
-            let [SenderAccount, indexofsender] = this.#findAccount(accountIdOfSender)
-            if (SenderAccount == null) {
-                throw new Error('Sender Account No not found')
-            }
-
-            let [ReceiverAccount, indexofreceiver] = FoundCustomer.#findAccount(accountIdOfReceiver)
-            if (ReceiverAccount == null) {
-                throw new Error('Receiver Account No not found')
-            }
-
-            SenderAccount.send(amount, accountIdOfSender, accountIdOfReceiver)
-            ReceiverAccount.receive(amount, accountIdOfSender, accountIdOfReceiver)
-
-        } catch (error) {
-            throw new Error(error.message)
-        }
-    }
-
-    passbook(accountNo) {
-        try {
-            if (this.isAdmin) {
-                throw new Error('Only user can have access to passbook')
-            }
-
-            let [FoundAccount, indexofAccount] = this.#findAccount(accountNo)
-            if (FoundAccount == null) {
-                throw new Error('Account No not found')
-            }
-            let passbookdetails = FoundAccount.getpassbook()
-            return passbookdetails
-
-
-        } catch (error) {
-            console.log(error.message);
         }
     }
     

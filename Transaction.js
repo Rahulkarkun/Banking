@@ -1,22 +1,17 @@
-class Transaction {
-    static Id = 0
-    constructor(date, amount, accountIdOfSender, accountIdOfReceiver, typeOfTransaction, currentBalance) {
-        this.transactionId = Transaction.Id++
-        this.date = date
+class Transaction
+{
+    constructor(sender,receiver,amount,type,timestamp)
+    {
+        this.sender = sender
+        this.receiver = receiver
         this.amount = amount
-        this.accountIdOfSender = accountIdOfSender
-        this.accountIdOfReceiver = accountIdOfReceiver
-        this.typeOfTransaction = typeOfTransaction
-        this.currentBalance = currentBalance
-
+        this.type = type
+        this.time = timestamp
     }
 
-    static createTransaction(date, amount, accountIdOfSender, accountIdOfReceiver, typeoftransaction, currentbalance) {
-        return new Transaction(date, amount, accountIdOfSender, accountIdOfReceiver, typeoftransaction, currentbalance)
+    static makeTransaction(sender,receiver,amount,type,timestamp)
+    {
+        return new Transaction(sender,receiver,amount,type,timestamp)
     }
-
-
-
 }
-
 module.exports = Transaction
